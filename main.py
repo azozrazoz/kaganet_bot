@@ -29,4 +29,4 @@ async def on_member_join(member: discord.member.Member):
     await channel.send(embed=discord.Embed(title=f"{member.name} итак здравствуй!", color=0xffffff))
 
 
-bot.run("MTA0MTYxNDI0MTM2ODY0OTc3OA.G-HRur.bUb6RxQA4NRuUZDoU0CMge0EappDo-J2VHVGI0")
+bot.run("TOKEN")
