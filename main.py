@@ -26,16 +26,27 @@ async def on_ready():
 async def on_member_join(member: nextcord.member.Member):
     channel = bot.get_channel(main_data[0]['join'])
 
-    role = nextcord.utils.get(member.guild.roles, id=main_data[0]['id_roles'])
-
-    await member.add_roles(role)
     await channel.send(embed=nextcord.Embed(title=f"{member.name} итак, здравствуй!", color=0xffffff))
 
 
 @bot.event
+async def on_message(ctx):
+    print(ctx)
+    if ctx.channel.id == 1001425551434715156:
+        member = ctx.author
+        role = nextcord.utils.get(member.guild.roles, id=main_data[0]['id_role_new_member'])
+
+        await member.add_roles(role)
+
+
+@bot.event
 async def on_raw_reaction_add(payload):
-    messageid = payload.message_id
-    if messageid == 1041687082713763890: 
+    # print(payload)
+    # channel = bot.get_channel(1035189687427534848)
+    # messages = await channel.history(limit=100).flatten()
+    message_id = payload.message_id
+    
+    if message_id == 1041687082713763890: 
         for role_name in main_data[1]:
             if payload.emoji.name == role_name:
                 role = nextcord.utils.get(payload.member.guild.roles, id=main_data[1][role_name])
@@ -54,14 +65,6 @@ async def on_raw_reaction_remove(payload):
                 await member.remove_roles(role)
                 break
 
-
-@bot.command(name="role")
-async def get_role(ctx, *args):
-    if (args != ()):
-        if (str.isdigit(args[0])):
-            print(ctx)
-    else:
-        await ctx.send("syntax is: $role [some number]")
 
 
 bot.run("")
