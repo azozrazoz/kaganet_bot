@@ -40,4 +40,4 @@ async def on_ready():
     print("BOT ONLINE!")
 
 
-bot.run("MTA0MTYxNDI0MTM2ODY0OTc3OA.GV4rYH.GUmyRENl6mzvuh1OBwEXami5oDEazGlYu4C_8Y")
+bot.run("token")
