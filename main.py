@@ -4,12 +4,6 @@ import requests
 import json
 from music_cog import MusicCog
 
-main_data = []
-
-with open("data.json", 'r', encoding='UTF-8') as file:
-    main_data = json.load(file)
-
-
 intents = nextcord.Intents.all()
 bot_activity = nextcord.Activity(type=nextcord.ActivityType.listening, name="фонк")
 intents.members = True
@@ -40,4 +34,4 @@ async def on_ready():
     print("BOT ONLINE!")
 
 
-bot.run("token")
+bot.run("MTA0MTYxNDI0MTM2ODY0OTc3OA.GOxaB1.xc8k_apQVLOMp3AB62Ee3Z-Ju8MzG1jW08vRaw")
