@@ -1,7 +1,6 @@
 import nextcord
 from nextcord.ext import commands
 import requests
-import json
 from music_cog import MusicCog
 
 intents = nextcord.Intents.all()
@@ -34,4 +33,4 @@ async def on_ready():
     print("BOT ONLINE!")
 
 
-bot.run("token")
+bot.run("MTA0MTYxNDI0MTM2ODY0OTc3OA.GJ7b-m.hQGPoKyD9VhhJiZCuku_OvCQzoyaGkbbmvS3Z8")
