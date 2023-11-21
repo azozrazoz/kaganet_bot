@@ -1,2 +1,11 @@
 venv
 /venv
+
+/vscode
+.vscode
+vscode
+
+.idea
+/.idea
+__pycache__
+Example run file.txt

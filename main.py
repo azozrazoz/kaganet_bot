@@ -2,6 +2,7 @@ import nextcord
 from nextcord.ext import commands
 import requests
 from music_cog import MusicCog
+import os
 
 intents = nextcord.Intents.all()
 bot_activity = nextcord.Activity(type=nextcord.ActivityType.listening, name="фонк")
@@ -30,7 +31,8 @@ async def kurs(ctx):
 
 @bot.event
 async def on_ready():
+    # print(os.getenv("SECRET_KEY"))
     print("BOT ONLINE!")
 
 
-bot.run("MTA0MTYxNDI0MTM2ODY0OTc3OA.GJ7b-m.hQGPoKyD9VhhJiZCuku_OvCQzoyaGkbbmvS3Z8")
+bot.run("MTA0MTYxNDI0MTM2ODY0OTc3OA.G5GErE.UOKgRBwnTT_pR_qTiWhQC7x74RGuZCvFnjoBgk")

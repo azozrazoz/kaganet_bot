@@ -3,7 +3,17 @@ import functools
 import random
 import nextcord
 from nextcord.ext import commands
-import youtube_dl
+import yt_dlp as youtube_dl
+
+
+def get_array_from_string(songs: str):
+    result = []
+
+    for item in songs.split(']', maxsplit=songs.count(']') - 1):
+        item = item.strip()[1:]
+        result.append(item)
+
+    return result
 
 
 class YTDLError(Exception):
@@ -113,7 +123,7 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
             info = None
             while info is None:
                 try:
-                    info = processed_info['entries'].pop(0)
+                    info = processed_info['entries'].pop()
                 except IndexError:
                     raise YTDLError(
                         'Couldn\'t retrieve any matches for `{}`'.format(
@@ -181,6 +191,7 @@ class MusicCog(commands.Cog):
                             value=f"[Click]({self.queue[0][0]['url']})")
                  .add_field(name='URL',
                             value=f"[Click]({self.queue[0][0]['webpage_url']})")
+                 .add_field(name='VIEWS', value=f"{self.queue[0][0]['view_count']}")
                  .set_thumbnail(url=self.queue[0][0]['thumbnail'])
                  )
 
@@ -206,7 +217,6 @@ class MusicCog(commands.Cog):
 
         async with ctx.typing():
 
-            # song = self.search_yt(search)
             song = await YTDLSource.create_source(search)
 
             if not song:
@@ -222,6 +232,43 @@ class MusicCog(commands.Cog):
                 self.current_embed = self.create_embed()
                 await ctx.send(embed=self.current_embed, )
                 self._play_next()
+
+    @commands.command(name='playlist', aliases=['pp'])
+    async def _playlist(self, ctx: commands.Context, *, search=None):
+        if search is None:
+            await ctx.send("Нужно отправить ссылки на видео или их названиями\n"
+                           "Вот так: [link] [sing name]")
+            return
+
+        try:
+            channel = ctx.message.author.voice.channel
+        except AttributeError:
+            await ctx.send(f'{ctx.author.mention} чел тыы, сам не в гс :/')
+            return
+
+        if self.voice_channel is None:
+            await self._join(ctx)
+
+        elif not channel == self.voice_channel:
+            await self._summon(ctx.message.author.voice.channel)
+
+        async with ctx.typing():
+            for one_song in get_array_from_string(search):
+                song = await YTDLSource.create_source(one_song)
+
+                if not song:
+                    await ctx.send("Произошла ошибка")
+                    return
+
+                self.queue.append([song, ctx.author.voice.channel])
+
+                await ctx.send('Добавлено: **{}**'.format(str(song['title'])))
+                self.requester = ctx.author
+
+                if not self.is_playing:
+                    self.current_embed = self.create_embed()
+                    await ctx.send(embed=self.current_embed, )
+                    self._play_next()
 
     def _play_next(self):
         self.voice_channel.stop()
@@ -257,8 +304,7 @@ class MusicCog(commands.Cog):
                 self.loop = False
                 await ctx.message.add_reaction('⏹')
                 await ctx.send(f"{ctx.author.mention} ваша полная остановочка!")
-            
-            
+
             await self._leave(ctx)
         else:
             await ctx.send("Не твой уровень дорогой :)")
