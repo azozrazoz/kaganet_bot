@@ -6,16 +6,6 @@ from nextcord.ext import commands
 import yt_dlp as youtube_dl
 
 
-def get_array_from_string(songs: str):
-    result = []
-
-    for item in songs.split(']', maxsplit=songs.count(']') - 1):
-        item = item.strip()[1:]
-        result.append(item)
-
-    return result
-
-
 class YTDLError(Exception):
     pass
 
@@ -152,12 +142,22 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
 
 class MusicCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
-        self.is_paused = False
         self.bot = bot
+
+        self.is_paused = False
         self.is_playing = False
         self.loop = False
 
         self.queue = []
+        
+        self.current = None
+        self.current_embed = None
+
+        self.voice_channel = None
+
+        self.requester = None
+        self.color_embed = 0xffffff
+
         self.YDL_OPTIONS = {'format': 'bestaudio/best', 'extractaudio': True,
                             'audioformat': 'mp3',
                             'outtmpl': u'%(id)s.%(ext)s',
@@ -170,14 +170,8 @@ class MusicCog(commands.Cog):
                             }]}
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                                'options': '-vn'}
-        self.current = None
-        self.current_embed = None
-
-        self.voice_channel = None
-
-        self.requester = None
-        self.color_embed = 0xffffff
-
+        
+        
     def create_embed(self):
         embed = (nextcord.Embed(
             title='Сейчас играет',
@@ -233,11 +227,10 @@ class MusicCog(commands.Cog):
                 await ctx.send(embed=self.current_embed, )
                 self._play_next()
 
-    @commands.command(name='playlist', aliases=['pp'])
+    @commands.command(name='playlist', aliases=['pl'])
     async def _playlist(self, ctx: commands.Context, *, search=None):
         if search is None:
-            await ctx.send("Нужно отправить ссылки на видео или их названиями\n"
-                           "Вот так: [link] [sing name]")
+            await ctx.send("Нужно отправить ссылки на видео или их названиями\nВот так $pl name\nИли так $pl link; link")
             return
 
         try:
@@ -253,7 +246,7 @@ class MusicCog(commands.Cog):
             await self._summon(ctx.message.author.voice.channel)
 
         async with ctx.typing():
-            for one_song in get_array_from_string(search):
+            for one_song in str.split(search, ';'):
                 song = await YTDLSource.create_source(one_song)
 
                 if not song:
@@ -380,7 +373,7 @@ class MusicCog(commands.Cog):
         random.shuffle(self.queue)
         await ctx.message.add_reaction('✅')
 
-    @commands.command(name='clear')
+    @commands.command(name='clear', aliases=['cls'])
     async def _clear(self, ctx):
         self.queue.clear()
         await ctx.send("Бак очищен, но все равно залей 92")

@@ -1,8 +1,17 @@
 import nextcord
 from nextcord.ext import commands
 import requests
-from music_cog import MusicCog
-import os
+import logging
+import config
+
+from cogs.music_cog import MusicCog
+from cogs.error_cog import ErrorCog
+
+logger = logging.getLogger('nextcord')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='nextcord.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
 
 intents = nextcord.Intents.all()
 bot_activity = nextcord.Activity(type=nextcord.ActivityType.listening, name="фонк")
@@ -12,6 +21,7 @@ intents.reactions = True
 bot = commands.Bot(command_prefix="$", intents=intents, status=nextcord.Status.idle, activity=bot_activity)
 
 bot.add_cog(MusicCog(bot=bot))
+bot.add_cog(ErrorCog(bot=bot))
 
 
 @bot.slash_command()
@@ -31,8 +41,6 @@ async def kurs(ctx):
 
 @bot.event
 async def on_ready():
-    # print(os.getenv("SECRET_KEY"))
     print("BOT ONLINE!")
 
-
-bot.run("MTA0MTYxNDI0MTM2ODY0OTc3OA.G5GErE.UOKgRBwnTT_pR_qTiWhQC7x74RGuZCvFnjoBgk")
+bot.run(config.TOKEN)

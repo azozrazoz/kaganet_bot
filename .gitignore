@@ -1,11 +1,8 @@
-venv
+/nextcord.log
 /venv
-
-/vscode
-.vscode
-vscode
-
-.idea
+/.vscode
 /.idea
-__pycache__
-Example run file.txt
+/__pycache__
+/cogs/__pycache__
+/main_run.bat
+/config.py
