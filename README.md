@@ -12,7 +12,7 @@
 - Add variable **TOKEN="your token"** in this file with your token form discord portal
 - `pip install -r requirements.txt`
 - wait...
-- `python main.py`
+- `python main.py` Enjoy 😁
 
 # Musical commands
 
