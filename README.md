@@ -2,6 +2,18 @@
 ## Administrative bot for the discord server
 <em>with musicians commands and not only :)</em>
 
+# How to install
+
+- `git clone https://github.com/azozrazoz/kaganet_bot.git`
+- `cd kaganet_bot`
+- `python -m venv venv`
+- `venv\scripts\activate`
+- Create **config.py** file `type nul > config.py`
+- Add variable **TOKEN="your token"** in this file with your token form discord portal
+- `pip install -r requirements.txt`
+- wait...
+- `python main.py`
+
 # Musical commands
 
 |         Commands          |  Aliases  |            Action             |
