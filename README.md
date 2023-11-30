@@ -11,7 +11,7 @@
 - Create **config.py** file `type nul > config.py`
 - Add variable **TOKEN="your token"** in this file with your token form discord portal
 - `pip install -r requirements.txt`
-- wait...
+- Wait...
 - `python main.py` Enjoy 😁
 
 # Musical commands

@@ -1,6 +1,7 @@
 import asyncio
 import functools
 import random
+from nextcord import Interaction
 import nextcord
 from nextcord.ext import commands
 import yt_dlp as youtube_dl
@@ -139,7 +140,6 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
 
         return ', '.join(duration)
 
-
 class MusicCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -191,41 +191,41 @@ class MusicCog(commands.Cog):
 
         return embed
 
-    @commands.command(name='play', aliases=['p'])
-    async def _play(self, ctx: commands.Context, *, search=None):
+    @nextcord.slash_command(name='play')
+    async def _play(self, interaction: Interaction, *, search=None):
         if search is None:
-            await ctx.send("Нужно отправить ссылку на видео или его название")
+            await interaction.send("Нужно отправить ссылку на видео или его название")
             return
 
         try:
-            channel = ctx.message.author.voice.channel
+            channel = interaction.user.voice.channel
         except AttributeError:
-            await ctx.send(f'{ctx.author.mention} чел тыы, сам не в гс :/')
+            await interaction.send(f'{interaction.user.mention} чел тыы, сам не в гс :/')
             return
 
         if self.voice_channel is None:
-            await self._join(ctx)
+            await self._join(interaction)
 
-        elif not channel == self.voice_channel:
-            await self._summon(ctx.message.author.voice.channel)
+        if not channel == self.voice_channel:
+            await self._summon(interaction.user)
 
-        async with ctx.typing():
+        await interaction.response.defer()
+        song = await YTDLSource.create_source(search)
 
-            song = await YTDLSource.create_source(search)
+        if not song:
+            await interaction.send("Произошла ошибка")
+            return
+    
+        self.queue.append([song, interaction.user.voice.channel])
+        
+        await interaction.followup.send(f"Добавлено: **{song['title']}**")
 
-            if not song:
-                await ctx.send("Произошла ошибка")
-                return
+        self.requester = interaction.user
 
-            self.queue.append([song, ctx.author.voice.channel])
-            
-            await ctx.send('Добавлено: **{}**'.format(str(song['title'])))
-            self.requester = ctx.author
-
-            if not self.is_playing:
-                self.current_embed = self.create_embed()
-                await ctx.send(embed=self.current_embed, )
-                self._play_next()
+        if not self.is_playing:
+            self.current_embed = self.create_embed()
+            await interaction.send(embed=self.current_embed)
+            self._play_next()
 
     @commands.command(name='playlist', aliases=['pl'])
     async def _playlist(self, ctx: commands.Context, *, search=None):
@@ -378,9 +378,11 @@ class MusicCog(commands.Cog):
         self.queue.clear()
         await ctx.send("Бак очищен, но все равно залей 92")
 
+    # Function for join to channel
     async def _join(self, ctx):
-        self.voice_channel = await ctx.author.voice.channel.connect()
+        self.voice_channel = await ctx.user.voice.channel.connect()
 
+    # Function for leave from channel
     async def _leave(self, ctx):
         if not self.voice_channel:
             return await ctx.send(f"{ctx.author.mention} ты думал я в гс? а нееет")

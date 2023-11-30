@@ -18,7 +18,7 @@ bot_activity = nextcord.Activity(type=nextcord.ActivityType.listening, name="Ñ„Ð
 intents.members = True
 intents.message_content = True
 intents.reactions = True
-bot = commands.Bot(command_prefix="$", intents=intents, status=nextcord.Status.idle, activity=bot_activity)
+bot = commands.Bot(command_prefix="/", intents=intents, status=nextcord.Status.idle, activity=bot_activity)
 
 bot.add_cog(MusicCog(bot=bot))
 bot.add_cog(ErrorCog(bot=bot))
