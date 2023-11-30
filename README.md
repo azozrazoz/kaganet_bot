@@ -5,7 +5,7 @@
 # Musical commands
 
 |         Commands          |  Aliases  |            Action             |
-|---------------------------|           |:-----------------------------:|
+|---------------------------|:---------:|:-----------------------------:|
 | /play link or name        |    /p     | play track by link or name    |
 | /stop                     |           | stop track                    |
 | /pause                    |           | pause track                   |
