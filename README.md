@@ -8,7 +8,7 @@
 - `cd kaganet_bot`
 - `python -m venv venv`
 - `venv\scripts\activate`
-- Create **config.py** file `type nul > config.py`
+- Create **config.py** using the example **config_example.py**, to create file `type nul > config.py`
 - Add variable **TOKEN="your token"** in this file with your token form discord portal
 - `pip install -r requirements.txt`
 - Wait...
@@ -16,19 +16,19 @@
 
 # Musical commands
 
-|         Commands          |  Aliases  |            Action             |
-|---------------------------|:---------:|:-----------------------------:|
-| /play link or name        |    /p     | play track by link or name    |
-| /stop                     |           | stop track                    |
-| /pause                    |           | pause track                   |
-| /resume                   |           | resume if track is paused     |
-| /skip                     |           | skip track                    |
-| /loop                     |    /l     | look current track            |
-| /queue                    |    /q     | displays tracks in queue      |
-| /playlist links or names  |    /pl    | add all playlist to queue     |
-| /now                      |           | display current track         |
-| /shuffle                  |           | shuffle current queue         |
-| /clear                    |    /cls   | clear queue                   |
+|         Commands          |            Action             |
+|---------------------------|:-----------------------------:|
+| /play link or name        | play track by link or name    |
+| /stop                     | stop track                    |
+| /pause                    | pause track                   |
+| /resume                   | resume if track is paused     |
+| /skip                     | skip track                    |
+| /loop                     | look current track            |
+| /queue                    | displays tracks in queue      |
+| /playlist links or names  | add all playlist to queue     |
+| /now                      | display current track         |
+| /shuffle                  | shuffle current queue         |
+| /clear                    | clear queue                   |
 
 
 # Other commands 

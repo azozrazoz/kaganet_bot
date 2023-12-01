@@ -25,15 +25,15 @@ bot.add_cog(ErrorCog(bot=bot))
 
 
 @bot.slash_command()
-async def test(interaction):
+async def test(interaction: nextcord.Interaction):
     await interaction.send("Hello")
 
 
-@bot.command(name="kurs")
-async def kurs(ctx):
+@bot.slash_command(name="kurs")
+async def kurs(interaction: nextcord.Interaction):
     data = requests.get('https://www.cbr-xml-daily.ru/daily_json.js').json()
 
-    await ctx.send(embed=nextcord.Embed(title="Курс на сегодня:", color=0xffffff, description=data['Date'])
+    await interaction.send(embed=nextcord.Embed(title="Курс на сегодня:", color=0xffffff, description=data['Date'])
     .add_field(name=data['Valute']['KZT']["Name"], value=data['Valute']['KZT']["Value"])
     .add_field(name=data['Valute']['USD']["Name"], value=data['Valute']['USD']["Value"])
     .add_field(name=data['Valute']['EUR']["Name"], value=data['Valute']['EUR']["Value"]))
