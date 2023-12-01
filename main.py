@@ -1,11 +1,11 @@
 import nextcord
 from nextcord.ext import commands
-import requests
 import logging
 import config
 
 from cogs.music_cog import MusicCog
 from cogs.error_cog import ErrorCog
+from cogs.user_cog import UserCog
 
 logger = logging.getLogger('nextcord')
 logger.setLevel(logging.DEBUG)
@@ -22,22 +22,7 @@ bot = commands.Bot(command_prefix="/", intents=intents, status=nextcord.Status.i
 
 bot.add_cog(MusicCog(bot=bot))
 bot.add_cog(ErrorCog(bot=bot))
-
-
-@bot.slash_command()
-async def test(interaction: nextcord.Interaction):
-    await interaction.send("Hello")
-
-
-@bot.slash_command(name="kurs")
-async def kurs(interaction: nextcord.Interaction):
-    data = requests.get('https://www.cbr-xml-daily.ru/daily_json.js').json()
-
-    await interaction.send(embed=nextcord.Embed(title="Курс на сегодня:", color=0xffffff, description=data['Date'])
-    .add_field(name=data['Valute']['KZT']["Name"], value=data['Valute']['KZT']["Value"])
-    .add_field(name=data['Valute']['USD']["Name"], value=data['Valute']['USD']["Value"])
-    .add_field(name=data['Valute']['EUR']["Name"], value=data['Valute']['EUR']["Value"]))
-
+bot.add_cog(UserCog(bot=bot))
 
 @bot.event
 async def on_ready():

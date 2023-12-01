@@ -1,11 +1,12 @@
+import nextcord
+from nextcord import Interaction
+from nextcord.ext import commands
 import asyncio
 import functools
 import random
-from nextcord import Interaction
-import nextcord
-from nextcord.ext import commands
 import yt_dlp as youtube_dl
-from messages import MESSAGE, EMOJIS_IN_MESSAGES
+
+from cogs.messages import MESSAGES_RU, MESSAGES_KZ, MESSAGES_EN, EMOJIS_IN_MESSAGES
 
 
 class YTDLError(Exception):
@@ -71,16 +72,10 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
         return '**{0.title}** by **{0.uploader}**'.format(self)
 
     @classmethod
-    async def create_source(cls,
-                            search: str,
-                            *,
-                            loop: asyncio.BaseEventLoop = None):
+    async def create_source(cls, search: str, *, loop: asyncio.BaseEventLoop = None):
         loop = loop or asyncio.get_event_loop()
 
-        partial = functools.partial(cls.ytdl.extract_info,
-                                    search,
-                                    download=False,
-                                    process=False)
+        partial = functools.partial(cls.ytdl.extract_info, search, download=False, process=False)
         data = await loop.run_in_executor(None, partial)
 
         if data is None:
@@ -101,9 +96,7 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
                     'Couldn\'t find anything that matches `{}`'.format(search))
 
         webpage_url = process_info['webpage_url']
-        partial = functools.partial(cls.ytdl.extract_info,
-                                    webpage_url,
-                                    download=False)
+        partial = functools.partial(cls.ytdl.extract_info, webpage_url, download=False)
         processed_info = await loop.run_in_executor(None, partial)
 
         if processed_info is None:
@@ -140,6 +133,7 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
             duration.append(f'{seconds} seconds')
 
         return ', '.join(duration)
+    
 
 class MusicCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -158,6 +152,8 @@ class MusicCog(commands.Cog):
 
         self.requester = None
         self.color_embed = 0xffffff
+        self.message = MESSAGES_RU
+        self.lang_select = "RU"
 
         self.YDL_OPTIONS = {'format': 'bestaudio/best', 'extractaudio': True,
                             'audioformat': 'mp3',
@@ -169,39 +165,52 @@ class MusicCog(commands.Cog):
                                 'preferredcodec': 'mp3',
                                 'preferredquality': '192',
                             }]}
-        self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                               'options': '-vn'}
+        self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
         
         
+    def change_lang(self):
+        if self.lang_select == "KZ":
+            self.message = MESSAGES_RU
+            self.lang_select = "RU"
+        elif self.lang_select == "RU":
+            self.message = MESSAGES_EN
+            self.lang_select = "EN"
+        else:
+            self.message = MESSAGES_KZ
+            self.lang_select = "KZ"
+            
+        return self.lang_select
+        
+
     def create_embed(self):
-        embed = (nextcord.Embed(
-            title='Сейчас играет',
-            description=f"```css\n{self.queue[0][0]['title']}\n```",
-            color=self.color_embed)
-                 .add_field(name='Время', value=YTDLSource.parse_duration(self.queue[0][0]['duration']))
-                 .add_field(name='Запрос от', value=self.requester.mention)
-                 .add_field(name='Загружено с',
-                            value=f"[{self.queue[0][0]['uploader']}]({self.queue[0][0]['uploader_url']})")
-                 .add_field(name='SOURCE',
-                            value=f"[Click]({self.queue[0][0]['url']})")
-                 .add_field(name='URL',
-                            value=f"[Click]({self.queue[0][0]['webpage_url']})")
-                 .add_field(name='VIEWS', value=f"{self.queue[0][0]['view_count']}")
-                 .set_thumbnail(url=self.queue[0][0]['thumbnail'])
-                 )
+        embed = (nextcord.Embed(title='Сейчас играет', 
+                                description=f"```css\n{self.queue[0][0]['title']}\n```", 
+                                color=self.color_embed)
+                                .add_field(name='Время', value=YTDLSource.parse_duration(self.queue[0][0]['duration']))
+                                .add_field(name='Запрос от', value=self.requester.mention)
+                                .add_field(name='Загружено с', value=f"[{self.queue[0][0]['uploader']}]({self.queue[0][0]['uploader_url']})")                 .add_field(name='SOURCE', value=f"[Click]({self.queue[0][0]['url']})")
+                                .add_field(name='URL', value=f"[Click]({self.queue[0][0]['webpage_url']})")
+                                .add_field(name='VIEWS', value=f"{self.queue[0][0]['view_count']}")
+                                .set_thumbnail(url=self.queue[0][0]['thumbnail'])
+                                )
 
         return embed
+    
+    
+    @nextcord.slash_command(name="language")
+    async def language(self, interaction: nextcord.Interaction):
+        await interaction.send(f"Language switch on {self.change_lang()}")
 
     @nextcord.slash_command(name='play')
     async def _play(self, interaction: Interaction, search: str = None):
         if search is None:
-            await interaction.send("Нужно отправить ссылку на видео или его название")
+            await interaction.send(self.message['HOW_TO_PLAY'])
             return
 
         try:
             channel = interaction.user.voice.channel
         except AttributeError:
-            await interaction.send(f'{interaction.user.mention} чел тыы, сам не в гс :/')
+            await interaction.send(f"{interaction.user.mention}  {self.message['user_voice_channel_is_empty']}")
             return
 
         if self.voice_channel is None:
@@ -214,12 +223,12 @@ class MusicCog(commands.Cog):
         song = await YTDLSource.create_source(search)
 
         if not song:
-            await interaction.send("Произошла ошибка")
+            await interaction.send(self.message['ERROR'])
             return
     
         self.queue.append([song, interaction.user.voice.channel])
         
-        await interaction.followup.send(f"Добавлено: **{song['title']}**")
+        await interaction.followup.send(f"{self.message['add_song']} **{song['title']}**")
 
         self.requester = interaction.user
 
@@ -231,13 +240,13 @@ class MusicCog(commands.Cog):
     @nextcord.slash_command(name='playlist')
     async def _playlist(self, interaction: Interaction, *, search=None):
         if search is None:
-            await interaction.send("Нужно отправить ссылки на видео или их названиями\nВот так $pl name\nИли так $pl link; link")
+            await interaction.send(self.message['HOW_TO_PLAY_PLAYLIST'])
             return
 
         try:
             channel = interaction.message.user.voice.channel
         except AttributeError:
-            await interaction.send(f'{interaction.user.mention} чел тыы, сам не в гс :/')
+            await interaction.send(f"{interaction.user.mention} {self.message['user_voice_channel_is_empty']}")
             return
 
         if self.voice_channel is None:
@@ -251,8 +260,8 @@ class MusicCog(commands.Cog):
         for one_song in str.split(search, ';'):
             song = await YTDLSource.create_source(one_song)
 
-            if not song:
-                await interaction.send("Произошла ошибка")
+            if not song:  
+                await interaction.send(self.message['ERROR'])
                 return
 
             self.queue.append([song, interaction.user.voice.channel])
@@ -269,16 +278,13 @@ class MusicCog(commands.Cog):
         self.voice_channel.stop()
 
         if self.loop:
-            self.voice_channel.play(nextcord.FFmpegPCMAudio(self.current,
-                                                           **self.FFMPEG_OPTIONS),
-                                    after=lambda e: self._play_next())
+            self.voice_channel.play(nextcord.FFmpegPCMAudio(self.current, **self.FFMPEG_OPTIONS), after=lambda e: self._play_next())
         elif len(self.queue) > 0:
             self.is_playing = True
 
             url = self.queue[0][0]['url']
 
-            self.voice_channel.play(nextcord.FFmpegPCMAudio(url, **self.FFMPEG_OPTIONS),
-                                    after=lambda e: self._play_next())
+            self.voice_channel.play(nextcord.FFmpegPCMAudio(url, **self.FFMPEG_OPTIONS), after=lambda e: self._play_next())
 
             self.current = url
             self.current_embed = self.create_embed()
@@ -297,11 +303,11 @@ class MusicCog(commands.Cog):
             if self.is_playing:
                 self.voice_channel.stop()
                 self.loop = False
-                await interaction.send(f"{interaction.user.mention} {EMOJIS_IN_MESSAGES['stop']} {MESSAGE['is_not_stop']}")
+                await interaction.send(f"{interaction.user.mention} {EMOJIS_IN_MESSAGES['stop']} {self.message['is_not_stop']}")
 
             await self._leave(interaction)
         else:
-            await interaction.send(f"{EMOJIS_IN_MESSAGES['stop']} {MESSAGE['is_stop']}")
+            await interaction.send(f"{EMOJIS_IN_MESSAGES['stop']} {self.message['is_stop']}")
 
     @nextcord.slash_command(name='pause')
     async def _pause(self, interaction: Interaction):
@@ -309,9 +315,9 @@ class MusicCog(commands.Cog):
             self.voice_channel.pause()
             self.is_playing = False
             self.is_paused = True
-            await interaction.send(f"{interaction.user.mention} {EMOJIS_IN_MESSAGES['pause']} {MESSAGE['is_not_pause']}")
+            await interaction.send(f"{interaction.user.mention} {EMOJIS_IN_MESSAGES['pause']} {self.message['is_not_pause']}")
         else:
-            await interaction.send(f"{interaction.user.mention} {EMOJIS_IN_MESSAGES['pause']} {MESSAGE['is_pause']}")
+            await interaction.send(f"{interaction.user.mention} {EMOJIS_IN_MESSAGES['pause']} {self.message['is_pause']}")
 
 
     @nextcord.slash_command(name='resume')
@@ -320,17 +326,17 @@ class MusicCog(commands.Cog):
             self.voice_channel.resume()
             self.is_playing = True
             self.is_paused = False
-            await interaction.send(f"{interaction.user.mention} 🚕 поехали!")
+            await interaction.send(f"{interaction.user.mention} {EMOJIS_IN_MESSAGES['resume']} {self.message['is_not_resume']}")
         else:
-            await interaction.send(f"{interaction.user.mention} 🚕 мы в пути!")
+            await interaction.send(f"{interaction.user.mention} {EMOJIS_IN_MESSAGES['resume']} {self.message['is_resume']}")
 
 
     @nextcord.slash_command(name='skip')
     async def _skip(self, interaction: Interaction):
         if not self.voice_channel.is_playing:
-            return await interaction.send('Пока что ничего не играет :|')
+            return await interaction.send(self.message['nothing_is_playing'])
         if len(self.queue) > 0:
-            await interaction.send(f'{interaction.user.mention} зачееем, ну ладно')
+            await interaction.send(f"{interaction.user.mention} {self.message['skip']}")
 
             self.voice_channel.stop()
             await self.cog_after_invoke(interaction)
@@ -343,23 +349,23 @@ class MusicCog(commands.Cog):
         if self.is_playing:
             return await interaction.send(embed=self.current_embed)
         else:
-            return await interaction.send('Пока что ничего не играет :|')
+            return await interaction.send(self.message['nothing_is_playing'])
 
     @nextcord.slash_command(name='loop')
     async def _loop(self, interaction: Interaction):
         if not self.is_playing:
-            return await interaction.send('Пока что ничего не играет :|')
+            return await interaction.send(self.message['nothing_is_playing'])
 
         self.loop = not self.loop
         if self.loop:
-            await interaction.send('✅ Будет сделано!')
+            await interaction.send(f"{EMOJIS_IN_MESSAGES['loop']} {self.message['is_not_loop']}")
         else:
-            await interaction.send('✅ Будет сделано, но в другую сторону')
+            await interaction.send(f"{EMOJIS_IN_MESSAGES['loop']} {self.message['is_loop']}")
 
     @nextcord.slash_command(name='queue')
     async def _queue(self, interaction: Interaction):
         if len(self.queue) <= 0:
-            await interaction.send("Бак пуст :(")
+            await interaction.send(self.message['queue_is_empy'])
             return
 
         retval = ""
@@ -373,15 +379,15 @@ class MusicCog(commands.Cog):
     @nextcord.slash_command(name='shuffle')
     async def _shuffle(self, interaction: Interaction):
         if len(self.queue) == 0:
-            return await interaction.send('Бак пуст, плиз залей 92 :)')
+            return await interaction.send(self.message['queue_is_empy'])
 
         random.shuffle(self.queue)
-        await interaction.send('Опять смешал с галиматьей!')
+        await interaction.send(self.message['shuffle'])
 
     @nextcord.slash_command(name='clear')
     async def _clear(self, interaction):
         self.queue.clear()
-        await interaction.send("Бак очищен, но все равно залей 92")
+        await interaction.send(f"{EMOJIS_IN_MESSAGES['clear']} {self.message['clear']}")
 
     # Function for join to channel
     async def _join(self, interaction: Interaction):
@@ -390,10 +396,10 @@ class MusicCog(commands.Cog):
     # Function for leave from channel
     async def _leave(self, interaction: Interaction):
         if not self.voice_channel:
-            return await interaction.send(f"{interaction.user.mention} ты думал я в гс? а нееет")
+            return await interaction.send(f"{interaction.user.mention} {self.message['voice_channel_is_empty']}")
 
         self.voice_channel.stop()
-        await interaction.send(f"Я пошел, бывайте :) ```{str(interaction.user.voice.channel)}```")
+        await interaction.send(f"{self.message['leave_from_channel']} ```{str(interaction.user.voice.channel)}```")
         await self.voice_channel.disconnect()
         self.voice_channel = None
         self.is_playing = False
