@@ -266,7 +266,7 @@ class MusicCog(commands.Cog):
 
             self.queue.append([song, interaction.user.voice.channel])
 
-            await interaction.followup.send('Добавлено: **{}**'.format(str(song['title'])))
+            await interaction.followup.send(f"{self.message['add_song']} {song['title']}")
             self.requester = interaction.user
 
             if not self.is_playing:

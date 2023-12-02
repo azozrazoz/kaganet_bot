@@ -13,7 +13,7 @@ class UserCog(commands.Cog):
         await interaction.send("Hello, I'm test command :)")
 
 
-    @nextcord.slash_command(name="currency")
+    @nextcord.slash_command(name="forex")
     async def kurs(self, interaction: nextcord.Interaction):
         data = requests.get('https://www.cbr-xml-daily.ru/daily_json.js').json()
 
