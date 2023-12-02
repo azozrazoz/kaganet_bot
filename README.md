@@ -14,6 +14,15 @@
 - Wait...
 - `python main.py` Enjoy 😁
 
+# How to create shortcut
+
+- Open the file **Example run file.txt**
+- Change the paths in this file
+- Rename file for example **run_file.bat**
+- Create shortcut for this file
+- Fix it in the Win start
+- Enjoy 🙂
+
 # Musical commands
 
 |         Commands          |            Action             |
